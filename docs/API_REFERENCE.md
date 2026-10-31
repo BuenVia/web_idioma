@@ -14,7 +14,7 @@ Reference for building a client against the language-learning backend (Spring Bo
 | Request content type | `Content-Type: application/json` for every `POST`/`PUT` |
 | Response content type | `application/json`, except `204 No Content` responses and empty `200` (see `lesson/getbysubject`) |
 | Pagination / sorting / filtering | **None.** List endpoints return everything for the language, in database (insertion/id) order. Sort and group on the client. Exception: `vocab/getallgrouped` is grouped and sorted on the server. |
-| CORS | **⚠ Not configured.** The server sends no `Access-Control-Allow-*` headers. A browser app served from a different origin will have its requests blocked. Use a dev-server proxy, or a native/mobile client; otherwise the backend needs CORS config added. |
+| CORS | **⚠ Not configured.** The server sends no `Access-Control-Allow-*` headers. A browser app served from a different origin will have its requests blocked. Use a dev-server proxy, or a native/mobile client; otherwise the backend needs CORS config added. The deployed web app (Render) calls the API cross-origin, so the deployed backend must allow its origin. |
 
 ### Language scoping
 
