@@ -196,6 +196,7 @@ a {
   white-space: nowrap;
   transition: background 0.15s, border-color 0.15s, color 0.15s;
 }
+a.btn { text-decoration: none; }
 .btn:hover { border-color: var(--muted); }
 .btn:disabled { opacity: 0.5; cursor: not-allowed; }
 
@@ -234,6 +235,7 @@ a {
 
 /* ---------- Forms ---------- */
 input,
+select,
 textarea {
   width: 100%;
   padding: 0.55rem 0.75rem;
@@ -244,6 +246,7 @@ textarea {
   font: inherit;
 }
 input:focus,
+select:focus,
 textarea:focus {
   outline: none;
   border-color: var(--primary);
@@ -278,6 +281,16 @@ textarea {
   max-width: 320px;
   margin-bottom: 1.25rem;
 }
+
+/* Vocabulary page: search box and level filter side by side. */
+.filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 1.25rem;
+}
+.filters .search { margin-bottom: 0; }
+.filter-select { width: auto; }
 
 .error {
   margin: 0.75rem 0;
@@ -333,6 +346,20 @@ textarea {
   background: var(--ok-soft);
   color: var(--ok);
 }
+/* CEFR level, e.g. "B2". */
+.pill-level {
+  background: var(--primary-soft);
+  color: var(--primary);
+  font-weight: 600;
+}
+
+/* Subject page: "Category · B2 Upper Intermediate" under the title. */
+.subject-info {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+}
 
 .section {
   padding: 1.5rem;
@@ -344,6 +371,50 @@ textarea {
   align-items: center;
   margin-bottom: 1rem;
 }
+
+/* ---------- Categories page ---------- */
+.category-card {
+  padding: 1.25rem;
+}
+.category-card .section-header {
+  margin-bottom: 0.75rem;
+}
+/* Subjects in a category: a stack of clickable boxes, no bullets. */
+.category-subjects {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+.subject-chip {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  padding: 0.55rem 0.75rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-small);
+  background: var(--bg);
+  color: var(--text);
+  font-size: 0.92rem;
+  text-decoration: none;
+  transition: border-color 0.15s, background 0.15s, color 0.15s;
+}
+.subject-chip:hover {
+  border-color: var(--primary);
+  background: var(--primary-soft);
+  color: var(--primary);
+}
+.subject-chip:focus-visible {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px var(--primary-soft);
+}
+/* Long names wrap instead of pushing the level badge out of the box. */
+.subject-chip-name { min-width: 0; overflow-wrap: anywhere; }
+.subject-chip .pill-level { flex-shrink: 0; }
 
 /* ---------- Empty states ---------- */
 .empty {
@@ -435,6 +506,17 @@ textarea {
   gap: 0.25rem;
   justify-content: flex-end;
 }
+/* Vocabulary page: two columns, no buttons, then a line with the word's
+   level, category and subject. */
+.vocab-row-readonly { grid-template-columns: 1fr 1fr; }
+.vocab-meta {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.4rem;
+}
+
 /* Hide row buttons until hover on devices that have a mouse. */
 @media (hover: hover) {
   .vocab-row:not(.editing) .row-actions { opacity: 0; transition: opacity 0.15s; }
@@ -469,7 +551,9 @@ textarea {
 /* ---------- Small screens ---------- */
 @media (max-width: 600px) {
   .topbar-inner { gap: 0.75rem; }
-  .nav { display: none; }
+  /* The nav links drop onto their own row below the logo and language. */
+  .topbar-inner { flex-wrap: wrap; }
+  .nav { order: 3; flex-basis: 100%; overflow-x: auto; }
   .brand { flex: 1; }
   .vocab-add,
   .vocab-row { grid-template-columns: 1fr 1fr; }

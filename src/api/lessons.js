@@ -1,4 +1,4 @@
-// Lesson endpoints — see docs/API_ENDPOINTS.md §5.
+// Lesson endpoints — see docs/API_REFERENCE.md §6.
 // A subject can have at most ONE lesson. Creating a second one makes the
 // server return 500, so check `subject.lesson` and use update if it exists.
 import { request } from './client';

@@ -4,14 +4,15 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project state
 
-`idioma` is a Create React App project (react-scripts 5.0.1, React 19, React Router 7) that manages content (subjects, lessons, vocab) for a language-learning Android app. It is a client for the Spring Boot API documented in `docs/API_ENDPOINTS.md` — read that before touching `src/api/`. `README.md` describes the folder layout. The code is meant to be readable by a junior developer: keep it plain (useState/useEffect, no global store, one CSS file), and comment non-obvious backend quirks.
+`idioma` is a Create React App project (react-scripts 5.0.1, React 19, React Router 7) that manages content (subjects, lessons, vocab) for a language-learning Android app. It is a client for the Spring Boot API documented in `docs/API_REFERENCE.md` — read that before touching `src/api/`. `README.md` describes the folder layout. The code is meant to be readable by a junior developer: keep it plain (useState/useEffect, no global store, one CSS file), and comment non-obvious backend quirks.
 
 ## Architecture
 
 - `src/api/` is the only place that calls `fetch`. `client.js#request(language, path, opts)` prefixes `/{language}`, sets JSON headers, maps error statuses to friendly messages (backend 404 messages are often wrong — don't surface them), and returns `null` for empty bodies (204 deletes, `lesson/getbysubject` with no lesson).
 - Requests use relative URLs; the `"proxy"` field in `package.json` forwards them to `http://localhost:8080` in dev because the backend has no CORS.
-- `src/context/LanguageContext.js` holds the current language (`es`/`ca`, persisted to localStorage). `Layout` navigates to `/` on language switch because subjects are language-scoped.
-- Routes (in `App.js`): `/` → `SubjectsPage`, `/subjects/:id` → `SubjectDetailPage`. The detail page fetches the full subject once and child sections (`LessonSection`, `VocabSection`) report saves via `onChange` so the parent updates state without refetching.
+- Languages and CEFR levels are never hard-coded: `src/context/LanguageContext.js` loads `GET /languages` and holds the current one (persisted to localStorage); `src/context/LevelsContext.js` loads `GET /levels` once. These two routes aren't language-scoped, so they use `client.js#send(url)` instead of `request`. `Layout` shows no page until languages have loaded (so `language` is never null in pages) and navigates to `/` on language switch because subjects are language-scoped.
+- Level lives on the subject (required on create, optional/unclearable on update); vocab inherits it.
+- Routes (in `App.js`): `/` → `CategoriesPage` (the home page; create/rename only — the API has no category delete), `/subjects` → `SubjectsPage`, `/subjects/:id` → `SubjectDetailPage`, `/vocab` → `VocabPage` (read-only; flattens `vocab/getallgrouped` so each word shows its category, subject and level). The detail page fetches the full subject once and child sections (`LessonSection`, `VocabSection`) report saves via `onChange` so the parent updates state without refetching.
 - Styles: everything in `src/index.css`, colour tokens on `:root` with a `prefers-color-scheme: dark` override.
 - The user may later add a learner-facing mode (e.g. `/learn`); keep the API layer independent of the management UI.
 

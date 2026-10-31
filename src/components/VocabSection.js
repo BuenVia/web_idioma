@@ -1,7 +1,7 @@
 // The vocabulary list for a subject: an "add word" form at the top, then a
 // table of words. Each row can be edited in place or deleted.
 import { useRef, useState } from 'react';
-import { useLanguage, LANGUAGES } from '../context/LanguageContext';
+import { useLanguage } from '../context/LanguageContext';
 import { createVocab, deleteVocab, updateVocab } from '../api/vocab';
 import ErrorMessage from './ErrorMessage';
 import ConfirmDialog from './ConfirmDialog';
@@ -12,8 +12,7 @@ import ConfirmDialog from './ConfirmDialog';
  * @param {Function} onChange - called with the new vocab array after any save
  */
 export default function VocabSection({ subjectId, vocabs, onChange }) {
-  const { language } = useLanguage();
-  const languageName = LANGUAGES.find((l) => l.code === language).name;
+  const { language, languageName } = useLanguage();
 
   // "Add word" form
   const [term, setTerm] = useState('');

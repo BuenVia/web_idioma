@@ -9,7 +9,7 @@
 //   lesson/getbysubject when there is no lesson), so we can't blindly call
 //   response.json().
 // - Error messages from the backend are sometimes misleading (see
-//   docs/API_ENDPOINTS.md §6), so we turn status codes into friendly text.
+//   docs/API_REFERENCE.md §7), so we turn status codes into friendly text.
 
 // Thrown for any non-2xx response. `status` is the HTTP status code.
 export class ApiError extends Error {
@@ -29,19 +29,31 @@ const FRIENDLY_ERRORS = {
 };
 
 /**
- * Send a request to the backend.
+ * Send a request to a language-scoped route, e.g. "/es/subject/getall".
+ * Nearly every backend route is under a language, so this is the one the API
+ * modules normally use.
  *
- * @param {string} language - "es" or "ca". Every path is prefixed with it.
+ * @param {string} language - a language code from GET /languages, e.g. "es".
+ *                            Every path is prefixed with it.
  * @param {string} path     - e.g. "/subject/getall"
  * @param {object} [options]
  * @param {string} [options.method="GET"]
  * @param {object} [options.body] - plain object, sent as JSON
  * @returns {Promise<any>} parsed JSON, or null when the body is empty
  */
-export async function request(language, path, { method = 'GET', body } = {}) {
+export function request(language, path, options) {
+  return send(`/${language}${path}`, options);
+}
+
+/**
+ * Send a request to any route, exactly as given. Use this for the few routes
+ * that are NOT under a language: GET /languages and GET /levels.
+ * Same options and return value as request().
+ */
+export async function send(url, { method = 'GET', body } = {}) {
   let response;
   try {
-    response = await fetch(`/${language}${path}`, {
+    response = await fetch(url, {
       method,
       // The backend returns 415 if JSON is sent without this header.
       headers: body ? { 'Content-Type': 'application/json' } : undefined,
