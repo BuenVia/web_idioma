@@ -10,11 +10,16 @@ Spring Boot backend described in [`docs/API_REFERENCE.md`](docs/API_REFERENCE.md
 2. `npm install` (first time only)
 3. `npm start` and open http://localhost:3000
 
-The backend sends no CORS headers, so the browser can't call it directly.
-Instead, the `"proxy"` setting in `package.json` makes the dev server forward
-API requests (e.g. `/es/subject/getall`) to port 8080. For production, serve
-the built app (`npm run build`) from the same origin as the API, or put a
-reverse proxy (e.g. nginx) in front of both.
+Locally, the `"proxy"` setting in `package.json` makes the dev server forward
+API requests (e.g. `/es/subject/getall`) to port 8080, so no CORS is needed.
+
+### Deploying (Render)
+
+Set the environment variable `REACT_APP_API_URL` to the deployed API's URL
+(e.g. `https://my-api.onrender.com`) and run `npm run build`. The value is
+baked in at build time, so redeploy after changing it. The backend must allow
+this app's origin via CORS. Add a rewrite rule `/*` → `/index.html` so
+refreshing a page like `/subjects/5` works.
 
 Tests: `CI=true npm test`
 

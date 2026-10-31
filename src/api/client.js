@@ -1,10 +1,16 @@
 // A tiny wrapper around fetch() that every API module uses.
 //
 // Why it exists:
-// - The backend has no CORS headers, so we call it with *relative* paths
-//   ("/es/subject/getall"). In development, the "proxy" field in package.json
-//   forwards these to http://localhost:8080. In production, serve this app
-//   from the same origin as the API (or put a reverse proxy in front of both).
+// - Where the API lives depends on where the app runs:
+//   * Locally, REACT_APP_API_URL is unset, so we call *relative* paths
+//     ("/es/subject/getall") and the "proxy" field in package.json forwards
+//     them to http://localhost:8080. The browser sees one origin, so no CORS
+//     is needed.
+//   * In production (Render), REACT_APP_API_URL is set to the deployed API,
+//     e.g. https://my-api.onrender.com, and we call it directly. The backend
+//     must then allow this app's origin via CORS.
+//   CRA bakes REACT_APP_* variables into the bundle at *build* time, so
+//   changing it requires a rebuild/redeploy.
 // - Some endpoints return an empty body (DELETE → 204, and
 //   lesson/getbysubject when there is no lesson), so we can't blindly call
 //   response.json().
@@ -18,6 +24,10 @@ export class ApiError extends Error {
     this.status = status;
   }
 }
+
+// The deployed API's URL, or "" locally (relative URLs). Any trailing slash
+// is stripped so API_BASE + "/languages" never produces "//languages".
+const API_BASE = (process.env.REACT_APP_API_URL || '').replace(/\/+$/, '');
 
 // Friendly messages keyed by HTTP status. We deliberately ignore the
 // backend's own `message` field because several of them name the wrong thing.
@@ -53,7 +63,7 @@ export function request(language, path, options) {
 export async function send(url, { method = 'GET', body } = {}) {
   let response;
   try {
-    response = await fetch(url, {
+    response = await fetch(API_BASE + url, {
       method,
       // The backend returns 415 if JSON is sent without this header.
       headers: body ? { 'Content-Type': 'application/json' } : undefined,
