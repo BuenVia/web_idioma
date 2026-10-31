@@ -1,70 +1,64 @@
-# Getting Started with Create React App
+# idioma — content manager
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+A web app for creating, viewing, editing and deleting the **subjects**,
+**lessons** and **vocabulary** used by the idioma Android app. It talks to the
+Spring Boot backend described in [`docs/API_ENDPOINTS.md`](docs/API_ENDPOINTS.md).
 
-## Available Scripts
+## Running it
 
-In the project directory, you can run:
+1. Start the backend on `http://localhost:8080`.
+2. `npm install` (first time only)
+3. `npm start` and open http://localhost:3000
 
-### `npm start`
+The backend sends no CORS headers, so the browser can't call it directly.
+Instead, the `"proxy"` setting in `package.json` makes the dev server forward
+API requests (e.g. `/es/subject/getall`) to port 8080. For production, serve
+the built app (`npm run build`) from the same origin as the API, or put a
+reverse proxy (e.g. nginx) in front of both.
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+Tests: `CI=true npm test`
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+## How the code is organised
 
-### `npm test`
+```
+src/
+  index.js            Starts React; wraps the app in the router + language provider
+  App.js              List of pages (routes)
+  index.css           All styles. Colours etc. are CSS variables at the top
+  api/                One file per backend resource — the ONLY place that calls fetch
+    client.js           Shared fetch wrapper (adds language, handles errors/empty bodies)
+    subjects.js
+    lessons.js
+    vocab.js
+  context/
+    LanguageContext.js  Current language (es / ca), saved in localStorage
+  pages/              Full screens
+    SubjectsPage.js     Grid of subjects + "New subject"
+    SubjectDetailPage.js One subject: rename/delete, lesson, vocabulary
+  components/         Reusable pieces used by the pages
+    Layout.js           Top bar + page frame
+    LessonSection.js    View / write / edit / delete the subject's lesson
+    VocabSection.js     Add, edit inline and delete words
+    Modal.js, ConfirmDialog.js, SubjectNameDialog.js, ErrorMessage.js
+```
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+Data flow is deliberately simple: each page loads what it needs with the
+functions in `src/api/`, keeps it in `useState`, and updates that state after a
+successful save. There is no global store.
 
-### `npm run build`
+## Things to know about the backend
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+These are handled in `src/api/`, but are worth knowing if you add features:
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+- Every URL starts with the language: `/es/...` or `/ca/...`.
+- A subject has **at most one** lesson. Creating a second gives a 500.
+- Vocab and lesson create/update **require** `subjectId` in the body.
+- Subject create returns `subjectId` instead of `id` (normalised in `api/subjects.js`).
+- Deleting a subject also deletes its lesson and vocab.
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+## Adding a learning mode later
 
-### `npm run eject`
-
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
-
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
-
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
-
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
-
-## Learn More
-
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
-
-To learn React, check out the [React documentation](https://reactjs.org/).
-
-### Code Splitting
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
-
-### Analyzing the Bundle Size
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
-
-### Making a Progressive Web App
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
-
-### Advanced Configuration
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
-
-### Deployment
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
-
-### `npm run build` fails to minify
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+The API layer and language context are independent of the "manage" screens, so
+a learner-facing area (flashcards, quizzes, reading lessons) can be added as new
+pages under e.g. `/learn`, registered in `App.js` and linked from the nav in
+`components/Layout.js`, reusing `getAllSubjects` / `getSubject`.
