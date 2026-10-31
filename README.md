@@ -2,7 +2,7 @@
 
 A web app for creating, viewing, editing and deleting the **subjects**,
 **lessons** and **vocabulary** used by the idioma Android app. It talks to the
-Spring Boot backend described in [`docs/API_ENDPOINTS.md`](docs/API_ENDPOINTS.md).
+Spring Boot backend described in [`docs/API_REFERENCE.md`](docs/API_REFERENCE.md).
 
 ## Running it
 
@@ -22,24 +22,34 @@ Tests: `CI=true npm test`
 
 ```
 src/
-  index.js            Starts React; wraps the app in the router + language provider
+  index.js            Starts React; wraps the app in the router + language/levels providers
   App.js              List of pages (routes)
   index.css           All styles. Colours etc. are CSS variables at the top
   api/                One file per backend resource — the ONLY place that calls fetch
     client.js           Shared fetch wrapper (adds language, handles errors/empty bodies)
+    languages.js        GET /languages — the languages the backend supports
+    levels.js           GET /levels — the CEFR levels (A1–C2) a subject can have
+    categories.js
     subjects.js
     lessons.js
     vocab.js
   context/
-    LanguageContext.js  Current language (es / ca), saved in localStorage
+    LanguageContext.js  Languages (from GET /languages) + the current one, saved in localStorage
+    LevelsContext.js    CEFR levels (from GET /levels), loaded once at start-up
   pages/              Full screens
-    SubjectsPage.js     Grid of subjects + "New subject"
-    SubjectDetailPage.js One subject: rename/delete, lesson, vocabulary
+    CategoriesPage.js   Home page (/): categories with their subjects; create and rename
+    SubjectsPage.js     /subjects: grid of subjects + "New subject"
+    SubjectDetailPage.js One subject: edit name/level/category, delete, lesson, vocabulary
+    VocabPage.js        /vocab: every word with its category, subject and level
+                        (read-only; search + level filter)
   components/         Reusable pieces used by the pages
     Layout.js           Top bar + page frame
     LessonSection.js    View / write / edit / delete the subject's lesson
     VocabSection.js     Add, edit inline and delete words
-    Modal.js, ConfirmDialog.js, SubjectNameDialog.js, ErrorMessage.js
+    Modal.js, ConfirmDialog.js, ErrorMessage.js
+    SubjectDialog.js    Create/edit a subject: name + level + category dropdowns
+    LevelBadge.js       Small "B2" pill; hover shows the level's name
+    CategoryNameDialog.js Create/rename a category
 ```
 
 Data flow is deliberately simple: each page loads what it needs with the
@@ -50,11 +60,19 @@ successful save. There is no global store.
 
 These are handled in `src/api/`, but are worth knowing if you add features:
 
-- Every URL starts with the language: `/es/...` or `/ca/...`.
+- Every URL starts with the language (`/es/...`, `/ca/...`), except
+  `GET /languages` and `GET /levels`. Languages and levels are never
+  hard-coded in the app: both lists come from those two endpoints.
+- Every subject has a CEFR level (`A1`–`C2`, uppercase). It's required on
+  create; on update leave it out to keep it. Older subjects may have `null`,
+  and a level can't be cleared once set. Vocab inherits its subject's level.
 - A subject has **at most one** lesson. Creating a second gives a 500.
 - Vocab and lesson create/update **require** `subjectId` in the body.
 - Subject create returns `subjectId` instead of `id` (normalised in `api/subjects.js`).
 - Deleting a subject also deletes its lesson and vocab.
+- Categories can be created and renamed but **not deleted** (no endpoint).
+- Subject update: leave out the category fields to keep the category, send
+  `categoryId` to move it, or `removeCategory: true` to clear it (not both).
 
 ## Adding a learning mode later
 

@@ -1,6 +1,6 @@
 import { render, screen, within } from '@testing-library/react';
 import LessonSection from './LessonSection';
-import { LanguageProvider } from '../context/LanguageContext';
+import { LanguageContext } from '../context/LanguageContext';
 
 test('renders the lesson body as Markdown, including tables', () => {
   const lesson = {
@@ -17,9 +17,10 @@ test('renders the lesson body as Markdown, including tables', () => {
   };
 
   render(
-    <LanguageProvider>
+    // Supply the language directly so no backend (GET /languages) is needed.
+    <LanguageContext.Provider value={{ language: 'es' }}>
       <LessonSection subjectId={1} lesson={lesson} onChange={() => {}} />
-    </LanguageProvider>
+    </LanguageContext.Provider>
   );
 
   const article = screen.getByRole('article');

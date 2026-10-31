@@ -1,16 +1,16 @@
-// Pop-up with one text field, used both to create and to rename a subject.
+// Pop-up with one text field, used both to create and to rename a category.
 import { useState } from 'react';
 import Modal from './Modal';
 import ErrorMessage from './ErrorMessage';
 
 /**
- * @param {string}   title         - e.g. "New subject"
+ * @param {string}   title         - e.g. "New category"
  * @param {string}   [initialName] - pre-filled value when renaming
  * @param {string}   submitLabel   - e.g. "Create"
  * @param {Function} onSubmit      - async (name) => void
  * @param {Function} onClose
  */
-export default function SubjectNameDialog({
+export default function CategoryNameDialog({
   title,
   initialName = '',
   submitLabel,
@@ -38,12 +38,12 @@ export default function SubjectNameDialog({
     <Modal title={title} onClose={onClose}>
       <form onSubmit={handleSubmit}>
         <label className="field">
-          <span>Subject name</span>
+          <span>Category name</span>
           <input
             autoFocus
             value={name}
             onChange={(e) => setName(e.target.value)}
-            placeholder="e.g. Food and drink"
+            placeholder="e.g. Grammar"
           />
         </label>
         <ErrorMessage message={error} />
@@ -51,7 +51,7 @@ export default function SubjectNameDialog({
           <button type="button" className="btn" onClick={onClose}>
             Cancel
           </button>
-          {/* The backend has no validation, so we block empty names here. */}
+          {/* The backend stores empty names as-is, so we block them here. */}
           <button
             type="submit"
             className="btn btn-primary"

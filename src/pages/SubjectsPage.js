@@ -5,7 +5,8 @@ import { Link, useNavigate } from 'react-router';
 import { useLanguage } from '../context/LanguageContext';
 import { createSubject, getAllSubjects } from '../api/subjects';
 import ErrorMessage from '../components/ErrorMessage';
-import SubjectNameDialog from '../components/SubjectNameDialog';
+import SubjectDialog from '../components/SubjectDialog';
+import LevelBadge from '../components/LevelBadge';
 
 export default function SubjectsPage() {
   const { language } = useLanguage();
@@ -41,8 +42,8 @@ export default function SubjectsPage() {
     };
   }, [language]);
 
-  async function handleCreate(name) {
-    const created = await createSubject(language, name);
+  async function handleCreate({ name, level, categoryId }) {
+    const created = await createSubject(language, { subjectName: name, level, categoryId });
     // Go straight to the new subject so the user can add a lesson and vocab.
     navigate(`/subjects/${created.id}`);
   }
@@ -96,6 +97,10 @@ export default function SubjectsPage() {
             >
               <h3>{subject.subjectName || 'Untitled'}</h3>
               <div className="subject-meta">
+                <LevelBadge level={subject.level} />
+                {subject.category && (
+                  <span className="pill">{subject.category.categoryName}</span>
+                )}
                 <span className="pill">
                   {subject.vocabs.length}{' '}
                   {subject.vocabs.length === 1 ? 'word' : 'words'}
@@ -110,7 +115,7 @@ export default function SubjectsPage() {
       )}
 
       {showCreate && (
-        <SubjectNameDialog
+        <SubjectDialog
           title="New subject"
           submitLabel="Create"
           onSubmit={handleCreate}
